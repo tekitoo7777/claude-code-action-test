@@ -5,6 +5,12 @@ on:
   issues:
     types: [opened]
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
 jobs:
   create-pr:
     if: contains(github.event.comment.body, '@claude') || contains(github.event.issue.body, '@claude')
@@ -12,6 +18,6 @@ jobs:
     steps:
       - uses: anthropics/claude-code-action@beta
         with:
-          prompt: "${{ github.event.comment.body || github.event.issue.body }}"
+          trigger_phrase: "@claude"
           allowed_tools: "Bash(git status),Bash(git log),Bash(git show),Bash(git blame),Bash(git reflog),Bash(git stash list),Bash(git ls-files),Bash(git branch),Bash(git tag),Bash(git diff),View,GlobTool,GrepTool,BatchTool"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
