@@ -1,28 +1,41 @@
-name: Claude PR Creation
+name: Claude Code
 on:
-  issue_comment:
+  issue_comment: # Issue（課題や質問）にコメントがあったとき
     types: [created]
-  issues:
-    types: [opened]
-
-permissions:
-  contents: write
-  pull-requests: write
-  issues: write
-  id-token: write
+  pull_request_review_comment: # Pull Request（変更提案）のレビューコメントがあったとき
+    types: [created]
+  issues: # Issueが作られたり、担当者が割り当てられたとき
+    types: [opened, assigned]
+  pull_request_review: # Pull Requestのレビューが提出されたとき
+    types: [submitted]
 
 jobs:
-  create-pr:
-    if: contains(github.event.comment.body, '@claude') || contains(github.event.issue.body, '@claude')
-    runs-on: ubuntu-latest
+  claude:
+    if: | # 以下のようなコメントやタイトルに「@claude」が含まれていたら動く
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+
+    runs-on: ubuntu-latest # 実行する環境
+
+    permissions: # Claudeが作業するために必要な権限
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+
     steps:
-      - name: Checkout repository
+      - name: Checkout repository # まずリポジトリの情報を読み込む
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          
-      - uses: anthropics/claude-code-action@beta
+          fetch-depth: 1 # 最新の情報だけ取得
+
+      - name: Run Claude Code # Claudeを実行する
+        id: claude
+        uses: あなたのGitHubアカウント名/claude-code-action@main # Step 0でコピーした設計図を指定
         with:
-          trigger_phrase: "@claude"
-          allowed_tools: "Bash(git status),Bash(git log),Bash(git show),Bash(git blame),Bash(git reflog),Bash(git stash list),Bash(git ls-files),Bash(git branch),Bash(git tag),Bash(git diff),View,GlobTool,GrepTool,BatchTool"
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          use_oauth: 'true' # 「通行証」を使う設定
+          claude_access_token: ${{ secrets.CLAUDE_ACCESS_TOKEN }} # Step 4で設定したシークレット
+          claude_refresh_token: ${{ secrets.CLAUDE_REFRESH_TOKEN }} # Step 4で設定したシークレット
+          claude_expires_at: ${{ secrets.CLAUDE_EXPIRES_AT }} # Step 4で設定したシークレット
