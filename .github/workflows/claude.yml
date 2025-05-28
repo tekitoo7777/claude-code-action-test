@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Claude Code # Claudeを実行する
         id: claude
-        uses: あなたのGitHubアカウント名/claude-code-action@main # Step 0でコピーした設計図を指定
+        uses: tekitoo7777/claude-code-action@main # Step 0でコピーした設計図を指定
         with:
           use_oauth: 'true' # 「通行証」を使う設定
           claude_access_token: ${{ secrets.CLAUDE_ACCESS_TOKEN }} # Step 4で設定したシークレット
